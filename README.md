@@ -27,7 +27,7 @@ Integration
 ------------------------------
 To use cron in your own project you have to set the cronlib into your LIBS  directive in your makefile, or direct in the cc line:
 
-	$(CC) $(LDFLAGS) -o $(TRG) $(shell find $(OBJECTDIR) -type f -name *.o) -lm **libavrcron.a**
+	$(CC) $(LDFLAGS) -o $(TRG) $(shell find $(OBJECTDIR) -type f -name *.o) -lm -l avrcron
 
 If everything ist fine, you can point your console into the project root
 
