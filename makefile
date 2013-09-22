@@ -62,7 +62,8 @@ OPTLEVEL = s
 HEXFORMAT = ihex
 
 # compiler
-CFLAGS = -I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL)  \
+CFLAGS = -I$(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL)  \
+		-c \
          -DF_CPU=$(F_CPU)                          \
          -fpack-struct -fshort-enums               \
          -funsigned-bitfields -funsigned-char      \
@@ -79,9 +80,6 @@ LDFLAGS = -Wl,-Map,$(TRG).map -mmcu=$(MCU)  \
 ##### automatic target names ####
 TRG=$(TARGETDIR)/$(PROJECTNAME).out
 DUMPTRG=$(TARGETDIR)/$(PROJECTNAME).s
-
-HEXROMTRG=$(TARGETDIR)/$(PROJECTNAME).hex
-HEXTRG=$(HEXROMTRG) $(TARGETDIR)/$(PROJECTNAME).ee.hex
 
 # Start by splitting source files by type
 #  C
@@ -114,9 +112,8 @@ test:
 	$(MAKE) -C tests
 
 $(TRG): $(OBJDEPS)
-# 	$(CC) $(LDFLAGS) -o $(TRG) $(shell find $(OBJECTDIR) -type f -name *.o)
-	$(AR) rv $(TARGETDIR)/$(PROJECTNAME).a $(shell find $(OBJECTDIR) -type f -name *.o)
-	$(MAKE) -f makefile_x86_64
+	$(AR) rcs $(TARGETDIR)/$(PROJECTNAME).a $(filter-out x86_64, $(shell find $(OBJECTDIR) -type f -name *.o)) 
+	# $(MAKE) -f makefile_x86_64
 
 #### Generating assembly ####
 # asm from C
@@ -129,26 +126,6 @@ $(TRG): $(OBJDEPS)
 .c.o:
 	$(dir_guard)
 	$(CC) $(CFLAGS) -c $< -o $(OBJECTDIR)/$@
-
-#### Generating hex files ####
-# hex files from elf
-.out.hex:
-	$(OBJCOPY) -j .text                    \
-	           -j .data                    \
-	           -O $(HEXFORMAT) $< $@
-
-.out.ee.hex:
-	$(OBJCOPY) -j .eeprom                     \
-	           --change-section-lma .eeprom=0 \
-	           -O $(HEXFORMAT) $< $@
-
-#### Upload ####
-upload:
-	$(AVRDUDE) -c $(PROGRAMMER) -B$(BOOTLOADER_BAUD) -Uflash:w:$(HEXROMTRG) -p $(PROGRAMMER_MCU)
-
-#### screen terminal ####
-term:
-	screen $(BOOTLOADER_PORT) $(BOOTLOADER_TERM)
 
 #### Information ####
 info:
