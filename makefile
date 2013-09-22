@@ -113,7 +113,7 @@ test:
 
 $(TRG): $(OBJDEPS)
 	$(AR) rcs $(TARGETDIR)/$(PROJECTNAME).a $(filter-out x86_64, $(shell find $(OBJECTDIR) -type f -name *.o)) 
-	# $(MAKE) -f makefile_x86_64
+	$(MAKE) -f makefile_x86_64
 
 #### Generating assembly ####
 # asm from C
