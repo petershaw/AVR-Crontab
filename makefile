@@ -4,7 +4,7 @@
 ###### Project:   AVR-Crontab
 ###### Developer: Peter Shaw
 ###### Date: 2013
-###### URL: https://github.com/petershaw/That-Is-The-Box-Of-My-Wife
+###### URL: https://github.com/petershaw/AVR-Crontab
 #######################################################################
 
 PROJECTNAME = libavrcron
