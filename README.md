@@ -127,7 +127,7 @@ return a integer between 0 and 60 for the current second the device is running.
 		cron_minutes
 return a integer between 0 and 60 for the current minute the device is running	
 
-	cron_hours
+		cron_hours
 returns a integer between 0 and 24 for every hour the device is running. After 24 hours system_days_since_startup is incremented. cron_calculate_uptime_hms will set cron_hours, cron_minutes and cron_seconds to 0.
 
 		 printf("UPTIME: %02d:%02d:%02d\n", cron_hours, cron_minutes, cron_seconds);
