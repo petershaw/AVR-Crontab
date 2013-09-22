@@ -7,20 +7,15 @@
 ###### URL: https://github.com/petershaw/AVR-Crontab
 #######################################################################
 
-PROJECTNAME = libavrcron
-
+PROJECTNAME = libavrcron_x68_64
 
 # Directory to generate objects
-OBJECTDIR=./build
+OBJECTDIR=./build/_x68_64
 # directory to store the product
 TARGETDIR=./target
 
-CC = avr-gcc
-OBJCOPY = avr-objcopy
-OBJDUMP = avr-objdump
-SIZE = avr-size
-AR = avr-ar
-AVRDUDE = avrdude
+CC = gcc
+AR = ar
 REMOVE = rm -f
 MKDIR_P = mkdir -p
 
@@ -29,20 +24,6 @@ MCU = atmega328p
 
 # Frequency of the controller
 F_CPU = 16000000UL
-
-# id to use with programmer
-# default: PROGRAMMER_MCU=$(MCU)
-PROGRAMMER_MCU = m328p
-
-# Programmer to use with avrdude
-PROGRAMMER=usbasp
-
-# port to use a bootloader
-# This should be the port for your MCU.
-BOOTLOADER_PORT = /dev/tty.SLAB_USBtoUART
-
-# baud to use a bootloader
-BOOTLOADER_BAUD = 9600
 
 # C Source files
 PRJSRC = $(shell find ./src* -name *.c)
@@ -53,35 +34,26 @@ INC =
 # libraries to link in (e.g. -lmylib)
 LIBS = 
 
-
 # Optimization level,
 # use s (size opt), 1, 2, 3 or 0 (off)
 OPTLEVEL = s
 
-# HEXFORMAT -- format for .hex file output
-HEXFORMAT = ihex
-
 # compiler
-CFLAGS = -I. $(INC) -g -mmcu=$(MCU) -O$(OPTLEVEL)  \
-         -DF_CPU=$(F_CPU)                          \
-         -fpack-struct -fshort-enums               \
-         -funsigned-bitfields -funsigned-char      \
-         -Wall -Wstrict-prototypes                 \
-         -Wa,-ahlms=$(OBJECTDIR)/$(firstword                    \
-                    $(filter %.lst, $(<:.c=.lst)))
+CFLAGS = -I $(INC) \
+	-g -Wall \
+	-pedantic \
+	--std=gnu99 \
+	-DIGNOREINTESTS=1 \
+	-static \
+	-Wgnu 
 
 # linker
-LDFLAGS = -Wl,-Map,$(TRG).map -mmcu=$(MCU)  \
-          -L "$${LIBPATH}"                  \
-          -lm $(LIBS)
+LDFLAGS = -I. $(INC) -DIGNOREINTESTS=1 -L "$${LIBPATH}" -lm $(LIBS)
 
 
 ##### automatic target names ####
 TRG=$(TARGETDIR)/$(PROJECTNAME).out
 DUMPTRG=$(TARGETDIR)/$(PROJECTNAME).s
-
-HEXROMTRG=$(TARGETDIR)/$(PROJECTNAME).hex
-HEXTRG=$(HEXROMTRG) $(TARGETDIR)/$(PROJECTNAME).ee.hex
 
 # Start by splitting source files by type
 #  C
@@ -104,19 +76,14 @@ dir_guard=$(MKDIR_P) $(OBJECTDIR)/$(@D)
 
 # Make targets:
 # all, disasm, stats, hex, writeflash/install, clean
-all: prepare test $(TRG) $(HEXTRG)
+all: prepare $(TRG) $(HEXTRG)
 
 prepare:
 	$(MKDIR_P) $(OBJECTDIR)
 	$(MKDIR_P) $(TARGETDIR)
 
-test:
-	$(MAKE) -C tests
-
 $(TRG): $(OBJDEPS)
-# 	$(CC) $(LDFLAGS) -o $(TRG) $(shell find $(OBJECTDIR) -type f -name *.o)
 	$(AR) rv $(TARGETDIR)/$(PROJECTNAME).a $(shell find $(OBJECTDIR) -type f -name *.o)
-	$(MAKE) -f makefile_x86_64
 
 #### Generating assembly ####
 # asm from C
@@ -130,17 +97,6 @@ $(TRG): $(OBJDEPS)
 	$(dir_guard)
 	$(CC) $(CFLAGS) -c $< -o $(OBJECTDIR)/$@
 
-#### Generating hex files ####
-# hex files from elf
-.out.hex:
-	$(OBJCOPY) -j .text                    \
-	           -j .data                    \
-	           -O $(HEXFORMAT) $< $@
-
-.out.ee.hex:
-	$(OBJCOPY) -j .eeprom                     \
-	           --change-section-lma .eeprom=0 \
-	           -O $(HEXFORMAT) $< $@
 
 #### Upload ####
 upload:
